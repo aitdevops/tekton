@@ -3,11 +3,8 @@ Tekton is an open-source framework for creating CI/CD (Continuous Integration an
 
 Features
 Kubernetes Native: Leverages Kubernetes capabilities for scalability and resilience.
-
 Extensible: Easily customizable with reusable tasks and pipelines.
-
 Interoperable: Compatible with other CI/CD tools and platforms.
-
 Declarative Pipelines: Define CI/CD workflows as code.
 
 

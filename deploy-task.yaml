@@ -1,0 +1,24 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: deploy-task
+spec:
+  steps:
+    - name: deploy
+      image: google/cloud-sdk:latest
+      env:
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /secrets/key.json
+      volumeMounts:
+        - name: gcp-key
+          mountPath: /secrets
+          readOnly: true
+      script: |
+        git clone https://github.com/aitdevops/tekton.git /workspace/tekton
+        gcloud auth activate-service-account --key-file=/secrets/key.json
+        gcloud container clusters get-credentials ${{ secrets.CLUSTER_NAME }} --region ${{ secrets.REGION }} --project ${{ secrets.PROJECT_ID }}
+        helm upgrade --install aitdevops-site /workspace/tekton/charts/aitdevops-site --set image.tag=${COMMIT_SHA}
+  volumes:
+    - name: gcp-key
+      secret:
+        secretName: gcp-secret

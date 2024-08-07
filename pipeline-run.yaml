@@ -1,0 +1,19 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineRun
+metadata:
+  name: frontend-pipeline-run
+spec:
+  pipelineRef:
+    name: frontend-pipeline
+  resources:
+    - name: source-repo-frontend
+      resourceRef:
+        name: git-repo-frontend
+    - name: source-repo-tekton
+      resourceRef:
+        name: git-repo-tekton
+  params:
+    - name: COMMIT_SHA
+      value: $(inputs.resources.source-repo-frontend.revision)
+    - name: PROJECT_ID
+      value: $(params.PROJECT_ID)

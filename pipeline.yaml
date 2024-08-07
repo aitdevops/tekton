@@ -1,0 +1,40 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: frontend-pipeline
+spec:
+  resources:
+    - name: source-repo-frontend
+      type: git
+    - name: source-repo-tekton
+      type: git
+  params:
+    - name: COMMIT_SHA
+    - name: PROJECT_ID
+  tasks:
+    - name: build-and-push
+      taskRef:
+        name: build-and-push-task
+      resources:
+        inputs:
+          - name: source
+            resource: source-repo-frontend
+      params:
+        - name: COMMIT_SHA
+          value: $(inputs.resources.source-repo-frontend.revision)
+        - name: PROJECT_ID
+          value: $(params.PROJECT_ID)
+    - name: deploy
+      taskRef:
+        name: deploy-task
+      runAfter:
+        - build-and-push
+      resources:
+        inputs:
+          - name: source
+            resource: source-repo-tekton
+      params:
+        - name: COMMIT_SHA
+          value: $(params.COMMIT_SHA)
+        - name: PROJECT_ID
+          value: $(params.PROJECT_ID)

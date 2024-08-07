@@ -1,0 +1,23 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: build-and-push-task
+spec:
+  steps:
+    - name: build-and-push
+      image: gcr.io/kaniko-project/executor:latest
+      env:
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /secrets/key.json
+      volumeMounts:
+        - name: gcp-key
+          mountPath: /secrets
+          readOnly: true
+      script: |
+        git clone https://github.com/aitdevops/aitdevops.git /workspace/aitdevops
+        cd /workspace/aitdevops/frontend
+        /kaniko/executor --dockerfile=Dockerfile --context=. --destination=us-central1-docker.pkg.dev/${PROJECT_ID}/aitdevops-gke/frontend:${COMMIT_SHA}
+  volumes:
+    - name: gcp-key
+      secret:
+        secretName: gcp-secret

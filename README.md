@@ -40,7 +40,7 @@ Repository Structure
 pipelines/: Contains Tekton pipeline definitions.
 tasks/: Includes reusable Tekton tasks.
 pipelineruns/: Example pipeline run configurations.
-docs/: Documentation and guides.
+docs/: Documentation and guide.
 
 
 Contributing

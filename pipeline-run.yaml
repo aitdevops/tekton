@@ -5,15 +5,12 @@ metadata:
 spec:
   pipelineRef:
     name: frontend-pipeline
-  resources:
-    - name: source-repo-frontend
-      resourceRef:
-        name: git-repo-frontend
-    - name: source-repo-tekton
-      resourceRef:
-        name: git-repo-tekton
   params:
     - name: COMMIT_SHA
-      value: $(inputs.resources.source-repo-frontend.revision)
+      value: "YOUR_COMMIT_SHA"
     - name: PROJECT_ID
-      value: $(params.PROJECT_ID)
+      value: "YOUR_PROJECT_ID"
+  workspaces:
+    - name: shared-workspace
+      persistentVolumeClaim:
+        claimName: tekton-workspace-pvc

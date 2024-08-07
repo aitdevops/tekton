@@ -3,7 +3,24 @@ kind: Task
 metadata:
   name: build-and-push-task
 spec:
+  params:
+    - name: git-url
+      type: string
+    - name: git-revision
+      type: string
+    - name: COMMIT_SHA
+      type: string
+    - name: PROJECT_ID
+      type: string
+  workspaces:
+    - name: shared-workspace
   steps:
+    - name: clone-repo
+      image: alpine/git
+      script: |
+        git clone $(params.git-url) $(workspaces.shared-workspace.path)/source
+        cd $(workspaces.shared-workspace.path)/source
+        git checkout $(params.git-revision)
     - name: build-and-push
       image: gcr.io/kaniko-project/executor:latest
       env:
@@ -14,9 +31,8 @@ spec:
           mountPath: /secrets
           readOnly: true
       script: |
-        git clone https://github.com/aitdevops/aitdevops.git /workspace/aitdevops
-        cd /workspace/aitdevops/frontend
-        /kaniko/executor --dockerfile=Dockerfile --context=. --destination=us-central1-docker.pkg.dev/${PROJECT_ID}/aitdevops-gke/frontend:${COMMIT_SHA}
+        cd $(workspaces.shared-workspace.path)/source/frontend
+        /kaniko/executor --dockerfile=Dockerfile --context=. --destination=us-central1-docker.pkg.dev/$(params.PROJECT_ID)/aitdevops-gke/frontend:$(params.COMMIT_SHA)
   volumes:
     - name: gcp-key
       secret:

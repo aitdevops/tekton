@@ -3,7 +3,24 @@ kind: Task
 metadata:
   name: deploy-task
 spec:
+  params:
+    - name: git-url
+      type: string
+    - name: git-revision
+      type: string
+    - name: COMMIT_SHA
+      type: string
+    - name: PROJECT_ID
+      type: string
+  workspaces:
+    - name: shared-workspace
   steps:
+    - name: clone-repo
+      image: alpine/git
+      script: |
+        git clone $(params.git-url) $(workspaces.shared-workspace.path)/tekton
+        cd $(workspaces.shared-workspace.path)/tekton
+        git checkout $(params.git-revision)
     - name: deploy
       image: google/cloud-sdk:latest
       env:
@@ -14,10 +31,9 @@ spec:
           mountPath: /secrets
           readOnly: true
       script: |
-        git clone https://github.com/aitdevops/tekton.git /workspace/tekton
         gcloud auth activate-service-account --key-file=/secrets/key.json
-        gcloud container clusters get-credentials ${{ secrets.CLUSTER_NAME }} --region ${{ secrets.REGION }} --project ${{ secrets.PROJECT_ID }}
-        helm upgrade --install aitdevops-site /workspace/tekton/charts/aitdevops-site --set image.tag=${COMMIT_SHA}
+        gcloud container clusters get-credentials $(params.CLUSTER_NAME) --region $(params.REGION) --project $(params.PROJECT_ID)
+        helm upgrade --install aitdevops-site $(workspaces.shared-workspace.path)/tekton/charts/aitdevops-site --set image.tag=$(params.COMMIT_SHA)
   volumes:
     - name: gcp-key
       secret:

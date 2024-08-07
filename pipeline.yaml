@@ -3,38 +3,57 @@ kind: Pipeline
 metadata:
   name: frontend-pipeline
 spec:
-  resources:
-    - name: source-repo-frontend
-      type: git
-    - name: source-repo-tekton
-      type: git
   params:
+    - name: git-url-frontend
+      type: string
+      description: The git repository URL for the frontend code
+      default: https://github.com/aitdevops/aitdevops
+    - name: git-revision-frontend
+      type: string
+      description: The git revision for the frontend code
+      default: frontend
+    - name: git-url-tekton
+      type: string
+      description: The git repository URL for the Tekton files
+      default: https://github.com/aitdevops/tekton
+    - name: git-revision-tekton
+      type: string
+      description: The git revision for the Tekton files
+      default: master
     - name: COMMIT_SHA
     - name: PROJECT_ID
+  workspaces:
+    - name: shared-workspace
   tasks:
     - name: build-and-push
       taskRef:
         name: build-and-push-task
-      resources:
-        inputs:
-          - name: source
-            resource: source-repo-frontend
       params:
+        - name: git-url
+          value: $(params.git-url-frontend)
+        - name: git-revision
+          value: $(params.git-revision-frontend)
         - name: COMMIT_SHA
-          value: $(inputs.resources.source-repo-frontend.revision)
+          value: $(params.COMMIT_SHA)
         - name: PROJECT_ID
           value: $(params.PROJECT_ID)
+      workspaces:
+        - name: shared-workspace
+          workspace: shared-workspace
     - name: deploy
       taskRef:
         name: deploy-task
       runAfter:
         - build-and-push
-      resources:
-        inputs:
-          - name: source
-            resource: source-repo-tekton
       params:
+        - name: git-url
+          value: $(params.git-url-tekton)
+        - name: git-revision
+          value: $(params.git-revision-tekton)
         - name: COMMIT_SHA
           value: $(params.COMMIT_SHA)
         - name: PROJECT_ID
           value: $(params.PROJECT_ID)
+      workspaces:
+        - name: shared-workspace
+          workspace: shared-workspace

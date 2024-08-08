@@ -2,6 +2,7 @@ apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
   name: deploy-task
+  namespace: tekton-tasks
 spec:
   params:
     - name: git-url
@@ -12,6 +13,10 @@ spec:
       type: string
     - name: PROJECT_ID
       type: string
+    - name: CLUSTER_NAME
+      type: string
+    - name: REGION
+      type: string
   workspaces:
     - name: shared-workspace
   steps:
@@ -21,8 +26,18 @@ spec:
         git clone $(params.git-url) $(workspaces.shared-workspace.path)/tekton
         cd $(workspaces.shared-workspace.path)/tekton
         git checkout $(params.git-revision)
+      securityContext:
+        runAsNonRoot: true
+        capabilities:
+          drop: ["ALL"]
+        seccompProfile:
+          type: RuntimeDefault
     - name: deploy
       image: google/cloud-sdk:latest
+      script: |
+        gcloud auth activate-service-account --key-file=/secrets/key.json
+        gcloud container clusters get-credentials $(params.CLUSTER_NAME) --region $(params.REGION) --project $(params.PROJECT_ID)
+        helm upgrade --install aitdevops-site $(workspaces.shared-workspace.path)/tekton/charts/aitdevops-site --set image.tag=$(params.COMMIT_SHA)
       env:
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /secrets/key.json
@@ -30,10 +45,12 @@ spec:
         - name: gcp-key
           mountPath: /secrets
           readOnly: true
-      script: |
-        gcloud auth activate-service-account --key-file=/secrets/key.json
-        gcloud container clusters get-credentials $(params.CLUSTER_NAME) --region $(params.REGION) --project $(params.PROJECT_ID)
-        helm upgrade --install aitdevops-site $(workspaces.shared-workspace.path)/tekton/charts/aitdevops-site --set image.tag=$(params.COMMIT_SHA)
+      securityContext:
+        runAsNonRoot: true
+        capabilities:
+          drop: ["ALL"]
+        seccompProfile:
+          type: RuntimeDefault
   volumes:
     - name: gcp-key
       secret:

@@ -2,6 +2,7 @@ apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
   name: build-and-push-task
+  namespace: tekton-tasks
 spec:
   params:
     - name: git-url
@@ -18,11 +19,25 @@ spec:
     - name: clone-repo
       image: alpine/git
       script: |
-        git clone $(params.git-url) $(workspaces.shared-workspace.path)/source
-        cd $(workspaces.shared-workspace.path)/source
-        git checkout $(params.git-revision)
+        #!/bin/sh
+        set -e
+        if [ -d /workspace/shared-workspace/source ]; then rm -rf /workspace/shared-workspace/source; fi
+        git clone $(params.git-url) /workspace/shared-workspace/source
+        cd /workspace/shared-workspace/source
+        git checkout --track origin/$(params.git-revision)
     - name: build-and-push
       image: gcr.io/kaniko-project/executor:latest
+      script: |
+        #!/bin/sh
+        set -e
+        cd /workspace/shared-workspace/source/frontend
+        if [ -f Dockerfile ]; then
+          echo "Dockerfile found, starting build"
+          /kaniko/executor --dockerfile=Dockerfile --context=. --destination=us-central1-docker.pkg.dev/$(params.PROJECT_ID)/aitdevops-gke/frontend:$(params.COMMIT_SHA)
+        else
+          echo "Dockerfile not found in the expected location."
+          exit 1
+        fi
       env:
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /secrets/key.json
@@ -30,9 +45,6 @@ spec:
         - name: gcp-key
           mountPath: /secrets
           readOnly: true
-      script: |
-        cd $(workspaces.shared-workspace.path)/source/frontend
-        /kaniko/executor --dockerfile=Dockerfile --context=. --destination=us-central1-docker.pkg.dev/$(params.PROJECT_ID)/aitdevops-gke/frontend:$(params.COMMIT_SHA)
   volumes:
     - name: gcp-key
       secret:

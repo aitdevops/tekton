@@ -2,15 +2,22 @@ apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
   name: frontend-pipeline-run
+  namespace: tekton-tasks
 spec:
-  pipelineRef:
-    name: frontend-pipeline
   params:
     - name: COMMIT_SHA
-      value: "YOUR_COMMIT_SHA"
+      value: YOUR_COMMIT_SHA
     - name: PROJECT_ID
-      value: "YOUR_PROJECT_ID"
+      value: aitdevops8
+    - name: CLUSTER_NAME
+      value: aitdevops-gke
+    - name: REGION
+      value: us-central1
+  pipelineRef:
+    name: frontend-pipeline
   workspaces:
     - name: shared-workspace
       persistentVolumeClaim:
         claimName: tekton-workspace-pvc
+  serviceAccountName: default
+  timeout: 1h0m0s

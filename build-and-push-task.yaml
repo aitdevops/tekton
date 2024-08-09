@@ -21,23 +21,23 @@ spec:
       script: |
         #!/bin/sh
         set -e
-        if [ -d /workspace/shared-workspace/source ]; then rm -rf /workspace/shared-workspace/source; fi
+        echo "Cleaning up the workspace"
+        if [ -d /workspace/shared-workspace/source ]; then
+          echo "Removing existing directory"
+          rm -rf /workspace/shared-workspace/source || { echo "Failed to remove directory"; exit 1; }
+        fi
+        mkdir -p /workspace/shared-workspace/source
         git clone $(params.git-url) /workspace/shared-workspace/source
         cd /workspace/shared-workspace/source
-        git checkout --track origin/$(params.git-revision)
+        git checkout $(params.git-revision)
     - name: build-and-push
       image: gcr.io/kaniko-project/executor:latest
-      script: |
-        #!/bin/sh
-        set -e
-        cd /workspace/shared-workspace/source/frontend
-        if [ -f Dockerfile ]; then
-          echo "Dockerfile found, starting build"
-          /kaniko/executor --dockerfile=Dockerfile --context=. --destination=us-central1-docker.pkg.dev/$(params.PROJECT_ID)/aitdevops-gke/frontend:$(params.COMMIT_SHA)
-        else
-          echo "Dockerfile not found in the expected location."
-          exit 1
-        fi
+      command:
+        - /kaniko/executor
+      args:
+        - --dockerfile=Dockerfile
+        - --context=/workspace/shared-workspace/source/frontend
+        - --destination=us-central1-docker.pkg.dev/$(params.PROJECT_ID)/aitdevops-gke/frontend/:$(params.COMMIT_SHA)
       env:
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /secrets/key.json

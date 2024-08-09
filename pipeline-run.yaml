@@ -9,10 +9,6 @@ spec:
       value: YOUR_COMMIT_SHA
     - name: PROJECT_ID
       value: aitdevops8
-    - name: CLUSTER_NAME
-      value: aitdevops-gke
-    - name: REGION
-      value: us-central1
   pipelineRef:
     name: frontend-pipeline
   workspaces:

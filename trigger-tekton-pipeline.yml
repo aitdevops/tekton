@@ -3,7 +3,7 @@ name: Trigger Tekton Pipeline
 on:
   push:
     branches:
-      - frontend
+      - main
 
 jobs:
   trigger-tekton:

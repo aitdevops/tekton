@@ -67,4 +67,4 @@ Contributions are welcome! Please submit a pull request or open an issue for any
 
 ## Contact
 
-For any questions or inquiries, please reach out to [rajeevkoppisetti21@gmail.com](mailto:rajeevkoppisetti21@gmail.com).
+For any questions or inquiries, please reach out to [rajeevkoppisetti21@gmail.com].

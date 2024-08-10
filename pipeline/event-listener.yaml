@@ -1,0 +1,13 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: frontend-listener
+  namespace: tekton-tasks
+spec:
+  serviceAccountName: tekton-triggers-admin
+  triggers:
+    - name: frontend-trigger
+      bindings:
+        - ref: frontend-trigger-binding
+      template:
+        ref: frontend-trigger-template

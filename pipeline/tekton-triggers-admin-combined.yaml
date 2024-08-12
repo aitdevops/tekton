@@ -1,0 +1,55 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tekton-triggers-admin
+  namespace: tekton-tasks
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: tekton-triggers-admin-role
+  namespace: tekton-tasks
+rules:
+  - apiGroups: ["triggers.tekton.dev"]
+    resources: ["triggerbindings", "triggers", "eventlisteners", "interceptors", "triggertemplates"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tekton-triggers-admin-binding
+  namespace: tekton-tasks
+subjects:
+  - kind: ServiceAccount
+    name: tekton-triggers-admin
+    namespace: tekton-tasks
+roleRef:
+  kind: Role
+  name: tekton-triggers-admin-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: tekton-triggers-admin-cluster-role
+rules:
+  - apiGroups: ["triggers.tekton.dev"]
+    resources: ["clustertriggerbindings", "clusterinterceptors"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: tekton-triggers-admin-cluster-binding
+subjects:
+  - kind: ServiceAccount
+    name: tekton-triggers-admin
+    namespace: tekton-tasks
+roleRef:
+  kind: ClusterRole
+  name: tekton-triggers-admin-cluster-role
+  apiGroup: rbac.authorization.k8s.io

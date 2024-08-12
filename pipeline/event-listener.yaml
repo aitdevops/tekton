@@ -11,3 +11,20 @@ spec:
         - ref: frontend-trigger-binding
       template:
         ref: frontend-trigger-template
+  resources:
+    kubernetesResource:
+      spec:
+        template:
+          spec:
+            containers:
+              - env:
+                  - name: TLS_CERT
+                    valueFrom:
+                      secretKeyRef:
+                        name: tekton-listener-tls-secret
+                        key: tls.crt
+                  - name: TLS_KEY
+                    valueFrom:
+                      secretKeyRef:
+                        name: tekton-listener-tls-secret
+                        key: tls.key

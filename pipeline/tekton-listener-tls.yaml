@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: tekton-listener-tls
+  namespace: tekton-tasks
+spec:
+  secretName: tekton-listener-tls-secret
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: el-frontend-listener.tekton-tasks.svc
+  dnsNames:
+    - el-frontend-listener.tekton-tasks.svc
